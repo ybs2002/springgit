@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="spring.model.board.IBoardDAO">
+	<select id="getList" parameterType="Map" resultType="spring.model.board.BoardDTO">
+
+		SELECT num, name, subject, to_char(regdate,'YYYY-MM-dd') as regdate,
+		count, indent, filename, filesize, r
+		FROM(
+		SELECT num, name, subject,
+		regdate ,
+		count, indent, filename, filesize, rownum r
+		FROM (
+		SELECT num,
+		name, subject, regdate,
+		count, indent, filename, filesize
+		FROM board
+			<if test="word != null and word != '' ">
+			<bind name="searchValue" value="'%'+word+'%'" />
+				<choose>
+					<when test="col.equals('subject_content')">
+						WHERE ( subject LIKE #{searchValue}
+						OR content LIKE #{searchValue} )
+					</when>
+					<when test="col.equals('name')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+					<when test="col.equals('subject')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+					<when test="col.equals('content')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+				</choose>
+			</if>
+
+					ORDER BY ref DESC, ansnum ASC
+			)
+		)
+	<![CDATA[ 		 			
+		 WHERE r >= #{sno} and r <= #{eno}
+]]>
+
+	</select>
+
+	<select id="getTotal" resultType="int">
+		
+
+		SELECT COUNT(*) FROM board
+				<if test="word != null and word != '' ">
+				<bind name="searchValue" value="'%'+word+'%'" />
+				<choose>
+					<when test="col.equals('subject_content')">
+						WHERE ( subject LIKE #{searchValue}
+						OR content LIKE #{searchValue} )
+					</when>
+					<when test="col.equals('name')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+					<when test="col.equals('subject')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+					<when test="col.equals('content')">
+						WHERE ${col} LIKE #{searchValue}
+					</when>
+				</choose>
+			</if>
+			
+	</select>
+	
+	<!-- 		<if test="word != '' and col.equals('subject_content') ">
+			WHERE subject LIKE #{searchValue}
+			OR content LIKE
+			#{searchValue}
+		</if>
+
+		<if test="word != null and word != ''">
+			WHERE ${col} LIKE #{searchValue} 
+		</if> -->
+
+
+	<insert id="write" parameterType="spring.model.board.BoardDTO" >
+	INSERT INTO board(num, name, passwd, subject, content,
+		regdate, ref, ip, filename, filesize )
+		VALUES(board_seq.nextval, #{name}, #{passwd}, #{subject}, #{content}, sysdate, board_seq.currval, #{ip}, #{filename}, #{filesize} ) 
+		
+	</insert>
+
+
+
+
+	<delete id="deleteDao">
+		DELETE FROM BOARD WHERE MID = #{param1}
+	</delete>
+
+
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
+
+	<bean id="applicationInfo" class="spring.utility.board.ApplicationInfo" />
+	
+	<!-- aop를 annotation을 사용하여 LogAopAnnotationUse 자바파일을 만들었을때 사용함 -->
+	<aop:aspectj-autoproxy />
+	<bean id="logAopAnnotationUse" class="spring.utility.board.LogAopAnnotationUse" />
+	
+	<!-- aop를 xml파일을 이용하여 설정할때 사용 LogAop 자바파일의 메소드에는 설정이 안들어감 -->
+	<bean id="logAop" class="spring.utility.board.LogAop" />
+	<aop:config>
+		<aop:aspect id="logger" ref="logAop">
+			<aop:pointcut id="publicM" expression="within(spring.utility.board.*)"  />
+			<aop:around pointcut-ref="publicM" method="loggerAop" />
+		</aop:aspect>
+		
+		<!-- <aop:aspect id="logger" ref="logAop">
+			<aop:pointcut id="publicM" expression="within(com.javalec.ex.*)"  />
+			<aop:before pointcut-ref="publicM" method="beforeAdvice" />
+		</aop:aspect>
+		
+		<aop:aspect id="logger" ref="logAop">
+			<aop:pointcut id="publicM" expression="within(com.javalec.ex.*)"  />
+			<aop:after-returning pointcut-ref="publicM" method="afterReturningAdvice" />
+		</aop:aspect>
+		
+		<aop:aspect id="logger" ref="logAop">
+			<aop:pointcut id="publicM" expression="within(com.javalec.ex.*)"  />
+			<aop:after-throwing pointcut-ref="publicM" method="afterThrowingAdvice" />
+		</aop:aspect>
+		
+		<aop:aspect id="logger" ref="logAop">
+			<aop:pointcut id="publicM" expression="within(com.javalec.ex.*)"  />
+			<aop:after pointcut-ref="publicM" method="afterAdvice" />
+		</aop:aspect> -->
+		
+	</aop:config>
+	
+	<bean id="student" class="spring.utility.board.Student" >
+		<property name="name" value="홍길동" />
+		<property name="age" value="10" />
+		<property name="gradeNum" value="3" />
+		<property name="classNum" value="5" />
+	</bean>
+	
+	<bean id="worker" class="spring.utility.board.Worker" >
+		<property name="name" value="홍길순" />
+		<property name="age" value="35" />
+		<property name="job" value="개발자" />
+	</bean>
+
+</beans>
