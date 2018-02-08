@@ -30,12 +30,24 @@
 	<context:component-scan base-package="spring.model.board" /> 
  	<context:component-scan base-package="spring.utility.board" /> 
  	
-	<beans:bean name="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
-		<beans:property name="driverClassName" value="${datasource.driver}" />
-		<beans:property name="url" value="${datasource.url}" />
-		<beans:property name="username" value="${datasource.username}" />
-		<beans:property name="password" value="${datasource.password}" />
-	</beans:bean>
+	
+	<!-- 	 <beans:bean id="dataSourceOrigin" class="org.springframework.jdbc.datasource.DriverManagerDataSource" > -->
+  	<beans:bean id="dataSourceOrigin" class="org.apache.commons.dbcp.BasicDataSource" >
+        <beans:property name="driverClassName" value="${datasource.driver}"/>
+        <beans:property name="url" value="${datasource.url}"/>
+        <beans:property name="username" value="${datasource.username}"/>
+        <beans:property name="password" value="${datasource.password}"/>
+    </beans:bean>
+    
+	<beans:bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+       <beans:constructor-arg ref="dataSourceOrigin" />
+        <beans:property name="logFormatter">
+            <beans:bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+                <beans:property name="loggingType" value="MULTI_LINE" />
+                <beans:property name="sqlPrefix" value="SQL         :  "/>
+            </beans:bean>
+       </beans:property>
+    </beans:bean>
 	
 	<beans:bean name="template" class="org.springframework.jdbc.core.JdbcTemplate">
 		<beans:property name="dataSource" ref="dataSource"/>
@@ -75,17 +87,20 @@
 		<beans:property name="transactionTemplate2" ref="transactionTemplate2" />
 	</beans:bean> -->
 	
+	<beans:bean id="myBatisTransactionManager" class="spring.utility.board.MyBatisTransactionManager" scope="prototype"/>
+	
 <!--  여기까지-->
 
 	<!-- mybatis 설정파일 아파치 log4j설정방법땀시  root-context로 옴김-->
-	<!-- <beans:bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+ <beans:bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<beans:property name="dataSource" ref="dataSource"></beans:property>
 		<beans:property name="mapperLocations" value="classpath:spring/model/board/mapper/*.xml"></beans:property>
 	</beans:bean>
 	
 	<beans:bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
 		<beans:constructor-arg index="0" ref="sqlSessionFactory"></beans:constructor-arg>
-	</beans:bean> -->
+	</beans:bean>
 	<!-- mybatis 설정마일 끝 -->
+	
 	
 </beans:beans>

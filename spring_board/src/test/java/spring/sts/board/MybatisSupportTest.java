@@ -15,7 +15,7 @@ import spring.utility.board.MyBatisTransactionManager;
 
 @TestExecutionListeners( { DependencyInjectionTestExecutionListener.class })
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/mybatis.xml" })
+@ContextConfiguration(locations = { "classpath:mybatis.xml" })
 public class MybatisSupportTest extends MyBatisSupport{
 	
 	public MybatisSupportTest() {

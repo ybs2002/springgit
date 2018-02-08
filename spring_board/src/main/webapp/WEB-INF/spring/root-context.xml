@@ -20,10 +20,11 @@
     <bean id="multipartResolver" 
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> 
     </bean> 
-    
+	
+  <!-- 01 주석처리 -->  
   <!--   	<context:property-placeholder location="classpath:application.properties" /> -->
     	
-	 <bean id="dataSourceOrigin" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+	 <!-- <bean id="dataSourceOrigin" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
         <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl"/>
         <property name="username" value="scott"/>
@@ -38,26 +39,7 @@
                 <property name="sqlPrefix" value="SQL         :  "/>
             </bean>
         </property>
-    </bean>
-    
-    <!-- Transaction Manager -->
-<!-- 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource" />
-	</bean> -->
-	
-    <bean id="myBatisTransactionManager" class="spring.utility.board.MyBatisTransactionManager" scope="prototype"/>
-    
-    <!-- MyBatis Sql Session Template -->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="mapperLocations"  value="classpath:spring/model/board/mapper/*.xml">
- <!--         <list>
-                <value>classpath:spring/model/board/mapper/IBoardDAO.xml</value>
-            </list> -->
-        </property>
-    </bean>
-		<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
-        <constructor-arg ref="sqlSessionFactory" />
-    </bean>
-		
+    </bean> -->
+     <!-- 01 주석처리 여기까지--> 
+ 
 </beans>

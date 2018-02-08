@@ -9,7 +9,6 @@
 	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
 	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
 
-<!--   	<context:property-placeholder location="classpath:application.properties" /> -->
 	<!-- <context:property-placeholder location="classpath:app.properties" /> -->
 
 	<!-- Data Source -->
@@ -22,9 +21,9 @@
 	</bean>
 	
 <!-- <bean id="applicationContext" class="org.springframework.context.ApplicationContext" />  -->
-<!-- 	 	<bean  class="spring.utility.board.MyBatisTransactionManager"/> -->
+	 	<bean  class="spring.utility.board.MyBatisTransactionManager"/>
 	
-	<bean id="myBatisTransactionManager" class="spring.utility.board.MyBatisTransactionManager"/> 
+<!-- 	<bean id="myBatisTransactionManager" class="spring.utility.board.MyBatisTransactionManager"/> -->
 	
 	<!-- Transaction Manager -->
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
