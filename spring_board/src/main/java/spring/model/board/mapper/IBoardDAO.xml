@@ -41,13 +41,15 @@
 		)
 	<![CDATA[ 		 			
 		 WHERE r >= #{sno} and r <= #{eno}
-]]>
+  ]]>
 
 	</select>
+	<!-- <if test="word != '' and col.equals('subject_content') "> WHERE ( 
+			subject LIKE #{searchValue} OR content LIKE #{searchValue} ) </if> <if test="word 
+			!= null and word != ''"> WHERE ${col} LIKE #{searchValue} </if> -->
 
-	<select id="getTotal" resultType="int">
+	<select id="getTotal" parameterType="Map" resultType="int">
 		
-
 		SELECT COUNT(*) FROM board
 				<if test="word != null and word != '' ">
 				<bind name="searchValue" value="'%'+word+'%'" />
@@ -87,13 +89,56 @@
 		VALUES(board_seq.nextval, #{name}, #{passwd}, #{subject}, #{content}, sysdate, board_seq.currval, #{ip}, #{filename}, #{filesize} ) 
 		
 	</insert>
-
-
-
-
-	<delete id="deleteDao">
-		DELETE FROM BOARD WHERE MID = #{param1}
+	
+	<update id="upCount" parameterType="int" >
+		UPDATE board SET count = count +1
+			WHERE num = #{num}
+	</update>
+	
+	<select id="read" parameterType="int" resultType="spring.model.board.BoardDTO">
+		 SELECT * from board
+			WHERE num = #{num}
+	</select>
+	
+	<select id="passwdCheck" parameterType="Map" resultType="spring.model.board.BoardDTO">
+		SELECT passwd FROM board
+		WHERE num = #{num} and passwd = #{passwd}
+	</select>
+	
+	<update id="update" parameterType="spring.model.board.BoardDTO">
+	UPDATE board SET 	name = #{name},
+										subject = #{subject}, 
+										content = #{content}
+							<if test="filesize > 0">
+										,filename = #{filename}, 
+										 filesize = #{filesize}
+							</if>
+		WHERE num = #{num}
+	</update>
+	
+	<update id="upAnsnum" parameterType="spring.model.board.BoardDTO">
+		UPDATE board SET ansnum = ansnum +1
+		<![CDATA[ 
+		WHERE ref = #{ref} and ansnum > #{ansnum}
+		]]>
+	</update>
+	
+	<insert id="insertReply" parameterType="spring.model.board.BoardDTO" >
+			INSERT INTO board(num, name, passwd, subject, content,
+									regdate, ref, indent, ansnum, ip, filename, filesize, refnum )
+					 VALUES(board_seq.nextval, #{name}, #{passwd}, #{subject}, #{content}, 
+									sysdate, #{ref}, #{indent}, #{ansnum}, #{ip}, #{filename}, #{filesize}, #{refnum} ) 
+		
+	</insert>
+	
+	<select id="checkRefnum" resultType="int">
+		SELECT count(*)  FROM board
+		WHERE refnum = #{num}
+	</select>
+	
+	<delete id="delete" parameterType="int">
+			delete from board
+			 WHERE num =  #{num}
 	</delete>
-
-
+	
 </mapper>

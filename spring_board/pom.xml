@@ -96,6 +96,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- mybatis sql log를 위한 설정 -->
+		<dependency>
+			<groupId>org.lazyluke</groupId>
+			<artifactId>log4jdbc-remix</artifactId>
+			<version>0.2.7</version>
+		</dependency>
+
 		<!-- @Inject -->
 		<dependency>
 			<groupId>javax.inject</groupId>
@@ -141,6 +148,13 @@
 			<version>4.7</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>3.1.0.RELEASE</version>
+		</dependency>
+
 
 		<!--스프링 jdbc추가 -->
 		<dependency>

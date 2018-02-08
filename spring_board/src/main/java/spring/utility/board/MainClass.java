@@ -8,8 +8,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.support.ResourcePropertySource;
 
-import spring.utility.board.ApplicationInfo;;
-
 public class MainClass {
 
 	public static void main(String[] args) {
@@ -18,7 +16,8 @@ public class MainClass {
 
 		System.out.println("ip : " + ApplicationConfig.getInfo().getIpNum());
 		System.out.println("port : " + ApplicationConfig.getInfo().getPortNum());
-//
+		
+		
 //		ConfigurableApplicationContext ctx = new GenericXmlApplicationContext();
 //		ConfigurableEnvironment env = ctx.getEnvironment();
 //		MutablePropertySources propertySources = env.getPropertySources();
@@ -33,16 +32,15 @@ public class MainClass {
 //
 //		GenericXmlApplicationContext gCtx = (GenericXmlApplicationContext) ctx;
 //
-//		gCtx.load("applicationCTX.xml");  
+//		gCtx.load("applicationCFG.xml");  
 //		gCtx.refresh();
 //
-//		ApplicationInfo applicationInfo = gCtx.getBean("applicationInfo", ApplicationInfo.class);
+//		ApplicationInfo applicationInfo = (ApplicationInfo)gCtx.getBean("applicationInfo", ApplicationInfo.class);
 //		System.out.println("admin ID : " + applicationInfo.getAdminId());
 //		System.out.println("amdin PW : " + applicationInfo.getAdminPw());
 //		System.out.println("up directory : " + applicationInfo.getUpDir());
 //		gCtx.close();
 //		ctx.close();
-		
 		System.out.println("admin ID : " + ApplicationConfig.getAppInfo().getAdminId());
 		System.out.println("amdin PW : " + ApplicationConfig.getAppInfo().getAdminPw());
 		System.out.println("upload directory : " + ApplicationConfig.getAppInfo().getUpDir());

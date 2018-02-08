@@ -2,13 +2,16 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
 
-	<bean id="applicationInfo" class="spring.utility.board.ApplicationInfo" />
-	
+	 <bean id="applicationInfo" class="spring.utility.board.ApplicationInfo" />
+	 
 	<!-- aop를 annotation을 사용하여 LogAopAnnotationUse 자바파일을 만들었을때 사용함 -->
 	<aop:aspectj-autoproxy />
+	
 	<bean id="logAopAnnotationUse" class="spring.utility.board.LogAopAnnotationUse" />
 	
 	<!-- aop를 xml파일을 이용하여 설정할때 사용 LogAop 자바파일의 메소드에는 설정이 안들어감 -->

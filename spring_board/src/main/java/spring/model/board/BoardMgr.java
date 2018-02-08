@@ -1,325 +1,480 @@
-package spring.model.board; 
- 
+package spring.model.board;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate; 
- 
-@Service 
-public class BoardMgr { 
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import spring.utility.board.MyBatisTransactionManager;
+
+@Service
+public class BoardMgr {
+
+	// autowired 하면 생성자를 호출하여 BoardDAO에서 멤버변수 jdbctemplate를 쓸줄알았는데 new BoardDAO로 해야
+	// 멤버변수 jdbctemplate가 연결이 되어서 BoardDAO에서 @Autowired를 멤버변수 jdbctemplate에 씀
+	// setsetBoardDao으로 하면 연결됨
+	// 마지막방법 기냥 Autowired로 연결하니 됨
+	@Autowired
+	private BoardDAO boardDao;
+	@Autowired
+	private TransactionTemplate transactionTemplate2;
 	
-//autowired 하면 생성자를 호출하여 BoardDAO에서 멤버변수 jdbctemplate를 쓸줄알았는데  new BoardDAO로 해야 
-//멤버변수 jdbctemplate가 연결이 되어서 BoardDAO에서 @Autowired를 멤버변수 jdbctemplate에 씀
-//setsetBoardDao으로 하면 연결됨
-// 마지막방법 기냥 Autowired로 연결하니 됨	
-@Autowired
-private BoardDAO boardDao; 
-@Autowired
-private TransactionTemplate transactionTemplate2;
+	@Autowired
+	private MyBatisTransactionManager myBatisTransactionManager;
+	@Autowired
+	private SqlSession sqlSession;
+	@Autowired
+	PlatformTransactionManager transactionManager;
 
-public BoardMgr() { 
-    super(); 
-} 
- 
-/** 
- * 글쓰기 
- * @param dto 
- * @return 
- */ 
-public boolean write(BoardDTO dto){ 
-    boolean flag = false; 
-    // BoardDAO boardDao = new BoardDAO();
+	public BoardMgr() {
+		super();
+	}
 
-    try{ 
-     flag = boardDao.write(dto); 
- 
-    }catch(Exception e){ 
-    	System.out.print(e);
-    }
-    	
-    return flag; 
-} 
- 
-/** 
- * 전체 레코드 갯수 
- * @return 
- */ 
-public int getTotal(Map<String, String> map){ 
-    // BoardDAO boardDao = new BoardDAO();
+	/**
+	 * 글쓰기
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	public boolean write(BoardDTO dto) {
+		boolean flag = false;
+		// BoardDAO boardDao = new BoardDAO();
 
-    int total=0; 
-    try {
-		total = boardDao.getTotal(map);
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		System.out.print(e);
-	} 
-     return total; 
-} 
-/** 
- * 글 목록 
- * @param searchColumn 검색컬럼 
- * @param searchWord   검색어 
- * @param beginPerPage 시작레코드번호 
- * @param numPerPage   한페이지당보여줄 레코드 갯수(10) 
- * @return 페이지에 보여줄 글의목록들 
- */ 
-public List<BoardDTO> getList(Map<String, String> map){ 
-    // BoardDAO boardDao = new BoardDAO();
-
-    List<BoardDTO> v = null; 
- 
-    try{ 
- 
-        v = boardDao.getList(map); 
- 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-    
-    return v; 
-} 
- 
- 
-/** 
- * 조회수 증가 
- * @param num 
- */ 
-public void upCount(int num){ 
-    // BoardDAO boardDao = new BoardDAO();
-
-    try{ 
-        boardDao.upCount(num); 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-} 
-/** 
- * 특정게시판 내용보기 
- * @param num 
- * @return 
- */ 
-public BoardDTO read(int num){
-    // BoardDAO boardDao = new BoardDAO();
-
-    BoardDTO dto = null; 
-    try{ 
-        dto = boardDao.read(num); 
- 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-    return dto; 
-} 
- 
-/** 
- * 비빌번호 확인 
- * @param num 
- * @param passwd 
- * @return 
- */ 
-public boolean passwdCheck(int num, String passwd){ 
-    // BoardDAO boardDao = new BoardDAO();
-    boolean flag = false; 
-    
-    try{ 
-        flag = boardDao.passwdCheck(num,passwd); 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-    return flag; 
-} 
- 
-/** 
- * 게시판 글수정 
- * @param dto 
- * @return 
- */ 
-public boolean update(BoardDTO dto){ 
-    // BoardDAO boardDao = new BoardDAO();
-    boolean flag = false; 
-    
-    try{ 
-        flag = boardDao.update(dto); 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-    return flag; 
-} 
-
-
-/** 
- * 답변처리  트랜잭션으로 처리함
- * 1.부모의 또다른 답변의 순서(ansnum)를  
- *   1증가 시켜줌(UPDATE) 
- * 2.새로운 답변글을 인서트 함(INSERT) 
- * @param dto 
- * @return 
- */ 
-public boolean reply(BoardDTO dto){
-    // BoardDAO boardDao = new BoardDAO();
-	boolean flag = false; 
-	
-	Object result = transactionTemplate2.execute(new TransactionCallback<Object>() {
-		@Override
-		public Object doInTransaction(TransactionStatus status) {
-			// TODO Auto-generated method stub
-			boolean inflag = false;
-			// TODO Auto-generated method stub
-			try {
-		        //ansnum의 순서를 재정렬 
-		        boardDao.upAnsnum(dto.getRef(),dto.getAnsnum()); 
-		        //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum 
-		        //부모글보다 1증가한 값으로 등록) 
-		        inflag =  boardDao.insertReply(dto);
-		        
-		        System.out.println("inflag = " + inflag);
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-			}
+		try {
 			
-			return new Boolean(inflag);
+			//mybatis
+			int cnt = sqlSession.insert("spring.model.board.IBoardDAO.write", dto);
+			System.out.println("cnt : "+ cnt);
+			if (cnt > 0) flag = true;
+			
+			//스프링
+			//flag = boardDao.write(dto);
+
+		} catch (Exception e) {
+			System.out.print(e);
 		}
-	});
-    
-	flag =  ((Boolean)result).booleanValue();
-	if(flag) System.out.println("정상처리");
-	else System.out.println("비정상처리");
-	
-	return flag; 
-} 
-//    Object result = transactionTemplate2.execute(new TransactionCallback() {
+
+		return flag;
+	}
+
+	/**
+	 * 전체 레코드 갯수
+	 * 
+	 * @return
+	 */
+	public int getTotal(Map<String, String> map) {
+		// BoardDAO boardDao = new BoardDAO();
+
+		int total = 0;
+		try {
+			//mybatis
+			total = sqlSession.selectOne("spring.model.board.IBoardDAO.getTotal", map);
+			//스프링
+			//total = boardDao.getTotal(map);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.print(e);
+		}
+		return total;
+	}
+
+	/**
+	 * 글 목록
+	 * 
+	 * @param searchColumn
+	 *            검색컬럼
+	 * @param searchWord
+	 *            검색어
+	 * @param beginPerPage
+	 *            시작레코드번호
+	 * @param numPerPage
+	 *            한페이지당보여줄 레코드 갯수(10)
+	 * @return 페이지에 보여줄 글의목록들
+	 */
+	public List<BoardDTO> getList(Map<String, String> map) {
+		// BoardDAO boardDao = new BoardDAO();
+
+		List<BoardDTO> v = null;
+
+		try {
+			//mybatis
+			v = sqlSession.selectList("spring.model.board.IBoardDAO.getList", map);
+
+			//스프링
+			//v = boardDao.getList(map);
+
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+
+		return v;
+	}
+
+	/**
+	 * 조회수 증가
+	 * 
+	 * @param num
+	 */
+	public void upCount(int num) {
+		// BoardDAO boardDao = new BoardDAO();
+
+		try {
+			// mybatis sql update
+			sqlSession.update("spring.model.board.IBoardDAO.upCount", num);
+
+			// boardDao.upCount(num);
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+	}
+
+	/**
+	 * 특정게시판 내용보기
+	 * 
+	 * @param num
+	 * @return
+	 */
+	public BoardDTO read(int num) {
+		// BoardDAO boardDao = new BoardDAO();
+
+		BoardDTO dto = null;
+
+		try {
+			// mybatis sql select
+			// Map<String, String> map = new HashMap<String, String>();
+			// map.put("num",String.valueOf(num));
+			// mybatis sql
+			dto = (BoardDTO) sqlSession.selectOne("spring.model.board.IBoardDAO.read", num);
+
+			// 스프링 조회
+			// dto = boardDao.read(num);
+
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+		return dto;
+	}
+
+	/**
+	 * 비빌번호 확인
+	 * 
+	 * @param num
+	 * @param passwd
+	 * @return
+	 */
+	public boolean passwdCheck(int num, String passwd) {
+		// BoardDAO boardDao = new BoardDAO();
+		boolean flag = false;
+		BoardDTO dto = null;
+
+		try {
+			// mybatis sql
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("num", String.valueOf(num));
+			map.put("passwd", passwd);
+			dto = (BoardDTO) sqlSession.selectOne("spring.model.board.IBoardDAO.passwdCheck", map);
+			System.out.println("dto.getPasswd() : " + dto.getPasswd());
+			if (dto != null)
+				flag = true;
+			// 스프링용
+			// flag = boardDao.passwdCheck(num,passwd);
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+		return flag;
+	}
+
+	/**
+	 * 게시판 글수정
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	public boolean update(BoardDTO dto) {
+		// BoardDAO boardDao = new BoardDAO();
+		boolean flag = false;
+
+		try {
+			// mybatis sql update
+			int cnt = sqlSession.update("spring.model.board.IBoardDAO.update", dto);
+			if (cnt > 0)
+				flag = true;
+
+			// flag = boardDao.update(dto);
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+		return flag;
+	}
+
+	/**
+	 * mybatis 답변처리 트랜잭션으로 처리함 1.부모의 또다른 답변의 순서(ansnum)를 1증가 시켜줌(UPDATE) 2.새로운 답변글을
+	 * 인서트 함(INSERT)
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	public boolean reply(BoardDTO dto) {
+		// BoardDAO boardDao = new BoardDAO();
+		boolean flag = false;
+		
+//plantransaction으로 처리		
+//		DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
+//		definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+//		TransactionStatus status = transactionManager.getTransaction(definition);
 //		
-//		@Override
-//		public Object doInTransaction(TransactionStatus arg0) {
-//			boolean inflag = false;
-//			// TODO Auto-generated method stub
-//			try {
-//		        //ansnum의 순서를 재정렬 
-//		        boardDao.upAnsnum(dto.getRef(),dto.getAnsnum()); 
-//		        //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum 
-//		        //부모글보다 1증가한 값으로 등록) 
-//		        inflag =  boardDao.insertReply(dto);
-//		        
-//		        System.out.println("inflag = " + inflag);
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//				e.printStackTrace();
-//			}
-//	
+//		try {
+//		
+//			//mybatis 적용
+//			dto.setRef(dto.getRef()); // ★ 중요(부모과 같은 ref)
+//			dto.setIndent(dto.getIndent() + 1);// ★ 중요(부모보다 1증가된 indent)
+//			dto.setAnsnum(dto.getAnsnum() + 1);// ★ 중요(부모보다 1증가된 ansnum)
+//			
+//		
+//			sqlSession.update("spring.model.board.IBoardDAO.upAnsnum", dto);
+//			int cnt = sqlSession.insert("spring.model.board.IBoardDAO.insertReply", dto);
+//			System.out.println("cnt : "+ cnt);
+//			if (cnt > 0) flag = true;
+//			
+//			transactionManager.commit(status);
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			
+//			transactionManager.rollback(status);
 //		}
-//	});
-    
+		
 
-///** 
-// * 답변처리  
-// * 1.부모의 또다른 답변의 순서(ansnum)를  
-// *   1증가 시켜줌(UPDATE) 
-// * 2.새로운 답변글을 인서트 함(INSERT) 
-// * @param dto 
-// * @return 
-// */ 
-//public boolean reply(BoardDTO dto){
-//    // BoardDAO boardDao = new BoardDAO();
-//    boolean flag = false; 
-//    
-//    try{ 
-//        //ansnum의 순서를 재정렬 
-//        boardDao.upAnsnum(dto.getRef(),dto.getAnsnum()); 
-//        //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum 
-//        //부모글보다 1증가한 값으로 등록) 
-//        flag = boardDao.insertReply(dto); 
-//    }catch(Exception e){ 
-//        System.out.print(e); 
-//    
-//    }
-//    
-//    return flag; 
-// } 
-//
+		// TODO Auto-generated method stub
+//		MyBatisSupport myBatisSupport = new MyBatisSupport();
+//		MyBatisTransactionManager transaction = myBatisSupport.getTransactionManager();
+	
+		myBatisTransactionManager.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		if(myBatisTransactionManager == null) {System.out.println("myBatisTransactionManager is null");}
+		else System.out.println("not null");
+		
+		try {
+//			// ansnum의 순서를 재정렬
+//			boardDao.upAnsnum(dto.getRef(), dto.getAnsnum());
+			
+//			// 답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum
+//			// 부모글보다 1증가한 값으로 등록)
+//			flag = boardDao.insertReply(dto);
+			
+			myBatisTransactionManager.start();
+			
+			//mybatis 적용
+			sqlSession.update("spring.model.board.IBoardDAO.upAnsnum", dto);
+		
+			dto.setRef(dto.getRef()); // ★ 중요(부모과 같은 ref)
+			dto.setIndent(dto.getIndent() + 1);// ★ 중요(부모보다 1증가된 indent)
+			dto.setAnsnum(dto.getAnsnum() + 1);// ★ 중요(부모보다 1증가된 ansnum)
+			int cnt = sqlSession.insert("spring.model.board.IBoardDAO.insertReply", dto);
+			System.out.println("cnt : "+ cnt);
+			if (cnt > 0) flag = true;
+			
+			myBatisTransactionManager.commit();
 
+			System.out.println("flag = " + flag);
+		} catch (Exception e) {
+			// TODO: handle exception
+			//myBatisTransactionManager.rollback();
+			e.printStackTrace();
+		} finally {
+			myBatisTransactionManager.rollback();
+		}
+		
+		return flag;
+	}
 
-/// transaction 처리해하라
-///** 
-// * 답변처리  
-// * 1.부모의 또다른 답변의 순서(ansnum)를  
-// *   1증가 시켜줌(UPDATE) 
-// * 2.새로운 답변글을 인서트 함(INSERT) 
-// * @param dto 
-// * @return 
-// */ 
-//public boolean reply(BoardDTO dto){ 
-//     BoardDAO boardDao = new BoardDAO();
-//    boolean flag = false; 
-//    Connection con = null;
-//    try{ 
-//     con = DBOpen.getConnection(); 
-//        con.setAutoCommit(false); 
-//        //ansnum의 순서를 재정렬 
-//        boardDao.upAnsnum(dto.getRef(),dto.getAnsnum(), con); 
-//        //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum 
-//        //부모글보다 1증가한 값으로 등록) 
-//        flag = boardDao.insertReply(dto, con); 
-//        //실제로 DB에 적용하라... 
-//        con.commit(); 
-//        }catch(Exception e){ 
-//        System.out.print(e); 
-//    try{ 
-//        //지금까지의 문장을 취소처리하라.. 
-//        con.rollback(); 
-//    }catch(Exception ex){} 
-//    }finally{ 
-//    try{ 
-//       con.setAutoCommit(true); 
-//    }catch(Exception ex){} 
-//        DBClose.close(con); 
-//    } 
-//    return flag; 
-//    } 
- 
- 
-    /** 
-     * 부모글인지 확인 
-     * @param num 
-     * @return 
-     */ 
-public boolean checkRefnum(int num){ 
-    // BoardDAO boardDao = new BoardDAO();
-    boolean flag = false; 
-    
-    try{ 
-        flag = boardDao.checkRefnum(num); 
-    }catch(Exception e){ 
-        System.out.print(e); 
-    }
-    
-    return flag; 
-} 
- 
-/** 
- * 게시판 글 삭제 
- * @param num 
- * @return 
- */ 
-public boolean delete(int num){ 
-    // BoardDAO boardDao = new BoardDAO();
-    boolean flag = false; 
-    
-    try{ 
-        flag = boardDao.delete(num); 
- 
-    }catch(Exception e){ 
-        System.out.print(e); 
-         
-    }
-    
-    return flag; 
-} 
- 
- 
-} 
+	// 스프링 트랜젝션으로 처리함
+	/// **
+	// * 답변처리 트랜잭션으로 처리함
+	// * 1.부모의 또다른 답변의 순서(ansnum)를
+	// * 1증가 시켜줌(UPDATE)
+	// * 2.새로운 답변글을 인서트 함(INSERT)
+	// * @param dto
+	// * @return
+	// */
+	// public boolean reply(BoardDTO dto){
+	// // BoardDAO boardDao = new BoardDAO();
+	// boolean flag = false;
+	//
+	// Object result = transactionTemplate2.execute(new
+	// TransactionCallback<Object>() {
+	// @Override
+	// public Object doInTransaction(TransactionStatus status) {
+	// // TODO Auto-generated method stub
+	// boolean inflag = false;
+	// // TODO Auto-generated method stub
+	// try {
+	// //ansnum의 순서를 재정렬
+	// boardDao.upAnsnum(dto.getRef(),dto.getAnsnum());
+	// //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum
+	// //부모글보다 1증가한 값으로 등록)
+	// inflag = boardDao.insertReply(dto);
+	//
+	// System.out.println("inflag = " + inflag);
+	// } catch (Exception e) {
+	// // TODO: handle exception
+	// e.printStackTrace();
+	// }
+	//
+	// return new Boolean(inflag);
+	// }
+	// });
+	//
+	// flag = ((Boolean)result).booleanValue();
+	// if(flag) System.out.println("정상처리");
+	// else System.out.println("비정상처리");
+	//
+	// return flag;
+	// }
+
+	// Object result = transactionTemplate2.execute(new TransactionCallback() {
+	//
+	// @Override
+	// public Object doInTransaction(TransactionStatus arg0) {
+	// boolean inflag = false;
+	// // TODO Auto-generated method stub
+	// try {
+	// //ansnum의 순서를 재정렬
+	// boardDao.upAnsnum(dto.getRef(),dto.getAnsnum());
+	// //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum
+	// //부모글보다 1증가한 값으로 등록)
+	// inflag = boardDao.insertReply(dto);
+	//
+	// System.out.println("inflag = " + inflag);
+	// } catch (Exception e) {
+	// // TODO: handle exception
+	// e.printStackTrace();
+	// }
+	//
+	// }
+	// });
+
+	/// **
+	// * 답변처리
+	// * 1.부모의 또다른 답변의 순서(ansnum)를
+	// * 1증가 시켜줌(UPDATE)
+	// * 2.새로운 답변글을 인서트 함(INSERT)
+	// * @param dto
+	// * @return
+	// */
+	// public boolean reply(BoardDTO dto){
+	// // BoardDAO boardDao = new BoardDAO();
+	// boolean flag = false;
+	//
+	// try{
+	// //ansnum의 순서를 재정렬
+	// boardDao.upAnsnum(dto.getRef(),dto.getAnsnum());
+	// //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum
+	// //부모글보다 1증가한 값으로 등록)
+	// flag = boardDao.insertReply(dto);
+	// }catch(Exception e){
+	// System.out.print(e);
+	//
+	// }
+	//
+	// return flag;
+	// }
+	//
+
+	/// transaction 처리해하라
+	/// **
+	// * 답변처리
+	// * 1.부모의 또다른 답변의 순서(ansnum)를
+	// * 1증가 시켜줌(UPDATE)
+	// * 2.새로운 답변글을 인서트 함(INSERT)
+	// * @param dto
+	// * @return
+	// */
+	// public boolean reply(BoardDTO dto){
+	// BoardDAO boardDao = new BoardDAO();
+	// boolean flag = false;
+	// Connection con = null;
+	// try{
+	// con = DBOpen.getConnection();
+	// con.setAutoCommit(false);
+	// //ansnum의 순서를 재정렬
+	// boardDao.upAnsnum(dto.getRef(),dto.getAnsnum(), con);
+	// //답변글을 등록(ref는부모글의 ref와 같아야하고,indent, ansnum
+	// //부모글보다 1증가한 값으로 등록)
+	// flag = boardDao.insertReply(dto, con);
+	// //실제로 DB에 적용하라...
+	// con.commit();
+	// }catch(Exception e){
+	// System.out.print(e);
+	// try{
+	// //지금까지의 문장을 취소처리하라..
+	// con.rollback();
+	// }catch(Exception ex){}
+	// }finally{
+	// try{
+	// con.setAutoCommit(true);
+	// }catch(Exception ex){}
+	// DBClose.close(con);
+	// }
+	// return flag;
+	// }
+
+	/**
+	 * 부모글인지 확인
+	 * 
+	 * @param num
+	 * @return
+	 */
+	public boolean checkRefnum(int num) {
+		// BoardDAO boardDao = new BoardDAO();
+		boolean flag = false;
+
+		try {
+			//mybatis
+			int cnt =sqlSession.selectOne("spring.model.board.IBoardDAO.checkRefnum", num);
+			System.out.println("cnt : "+ cnt);
+			if (cnt > 0) flag = true;
+
+			//스프링
+			//flag = boardDao.checkRefnum(num);
+		} catch (Exception e) {
+			System.out.print(e);
+		}
+
+		return flag;
+	}
+
+	/**
+	 * 게시판 글 삭제
+	 * 
+	 * @param num
+	 * @return
+	 */
+	public boolean delete(int num) {
+		// BoardDAO boardDao = new BoardDAO();
+		boolean flag = false;
+
+		try {
+			System.out.println("BoardMgr.called  num :" + num);
+			//mybatis
+			int cnt = sqlSession.delete("spring.model.board.IBoardDAO.delete", num);
+			System.out.println("cnt : "+ cnt);
+			if (cnt > 0) flag = true;
+			
+			// 스프링
+			//flag = boardDao.delete(num);
+
+		} catch (Exception e) {
+			System.out.print(e);
+
+		}
+
+		return flag;
+	}
+
+}

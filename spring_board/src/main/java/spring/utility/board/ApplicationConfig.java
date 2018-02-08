@@ -51,7 +51,7 @@ public class ApplicationConfig {
 
 		GenericXmlApplicationContext gCtx = (GenericXmlApplicationContext) ctx;
 		//gCtx.load("applicationCTX_dev.xml", "applicationCTX_run.xml"); //동일 디렉토리 xml에 동일한 클래스를을 여러개 선언하면 안된다.
-		gCtx.load("applicationCTX.xml");  
+		gCtx.load("applicationCFG.xml");  
 		gCtx.refresh();
 
 		ApplicationInfo applicationInfo = gCtx.getBean("applicationInfo", ApplicationInfo.class);

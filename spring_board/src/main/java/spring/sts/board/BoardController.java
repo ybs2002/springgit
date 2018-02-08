@@ -7,7 +7,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import spring.model.board.BoardDTO;
 import spring.model.board.BoardMgr;
-import spring.model.board.IBoardDAO;
+import spring.utility.board.ApplicationConfig;
 import spring.utility.board.Paging;
 import spring.utility.board.Utility; 
  
@@ -24,8 +23,6 @@ import spring.utility.board.Utility;
 public class BoardController { 
 @Autowired 
 private BoardMgr boardMgr; 
-@Autowired
-private SqlSession sqlSession;
 
 //private JdbcTemplate template;
 
@@ -85,14 +82,14 @@ public String list(HttpServletRequest request){
     map.put("sno",String.valueOf(sno)); 
     map.put("eno",String.valueOf(eno)); 
     
-//	mybatis사용하여 작성
-	IBoardDAO boardDao = sqlSession.getMapper(IBoardDAO.class);
-	 List<BoardDTO> list = boardDao. getList(map);
-	 int total = boardDao.getTotal(map);
+//	mybatis사용하여 작성 인터페이스를 사용하여 getMapper로 작성
+//	IBoardDAO boardDao = sqlSession.getMapper(IBoardDAO.class);
+//	 List<BoardDTO> list = boardDao.getList(map);
+//	 int total = boardDao.getTotal(map);
 	 
     //1. model사용  스프링 프레임워크용 작성
-//    List<BoardDTO> list = boardMgr.getList(map); 
-//    int total = boardMgr.getTotal(map); 
+    List<BoardDTO> list = boardMgr.getList(map); 
+    int total = boardMgr.getTotal(map); 
 // 
     String paging = new Paging().paging3(total, nowPage, numPerPage, col, word);
  
@@ -128,8 +125,14 @@ public String write(){
  */
 @RequestMapping(value="/board/write.do",method=RequestMethod.POST) 
 public String write(BoardDTO dto,HttpServletRequest request,HttpSession session ){ 
-    
-	String upDir =request.getRealPath("/resources/storage"); 
+	boolean flag = false;
+	//String upDir =request.getRealPath("/resources/storage");
+	//upDir =D:\tools\apache-tomcat-8.5.24\wtpwebapps\spring_board\resources\storage
+	//톰켓 sever.xml에 환경설정
+	//<Context docBase="D:\tools\resources\storage" path="/resources/storage" reloadable="true"/>
+	//String upDir ="/resources/storage";
+	//String upDir = "D:\\tools\\resources\\storage";
+	String upDir = ApplicationConfig.getAppInfo().getUpDir();
 	
 	System.out.println("request.getContextPath =" + request.getContextPath());
 	System.out.println("request.getPathInfo() =" + request.getPathInfo());
@@ -161,13 +164,12 @@ public String write(BoardDTO dto,HttpServletRequest request,HttpSession session 
     String ip = request.getRemoteAddr();  
     dto.setIp(ip); 
     
-//	mybatis사용하여 작성
-	IBoardDAO boardDao = sqlSession.getMapper(IBoardDAO.class);
-	boardDao. write(dto);
-	boolean flag = true;
- 
+//	mybatis사용하여 인터페이스 클래스와 getmapper로 작성
+//	IBoardDAO boardDao = sqlSession.getMapper(IBoardDAO.class);
+//	boardDao. write(dto);
+	
 	// 스프링으로 게시판 작성
-//    boolean flag = boardMgr.write(dto); 
+    flag = boardMgr.write(dto); 
  
     if(flag){ 
         return "redirect:./list.do"; 
@@ -179,7 +181,7 @@ public String write(BoardDTO dto,HttpServletRequest request,HttpSession session 
 @RequestMapping("/board/read.do") 
 public ModelAndView read(ModelAndView mview,int num,HttpServletRequest request){ 
 	System.out.println("read.do called");
- 
+	
     boardMgr.upCount(num); 
     mview.addObject("dto", boardMgr.read(num)); 
     mview.addObject("downDir", "/resources/storage"); 
@@ -200,7 +202,13 @@ public ModelAndView update(ModelAndView mview,int num){
 @RequestMapping(value="/board/update.do",method=RequestMethod.POST) 
 public String update(BoardDTO dto,HttpServletRequest request,String oldfile){ 
 
-    String upDir =request.getRealPath("/resources/storage"); 
+    //String upDir =request.getRealPath("/resources/storage"); 
+	//upDir =D:\tools\apache-tomcat-8.5.24\wtpwebapps\spring_board\resources\storage
+  //톰켓 sever.xml에 환경설정
+  	//<Context docBase="D:\tools\resources\storage" path="/resources/storage" reloadable="true"/>
+  	//String upDir ="/resources/storage";
+	//String upDir = "D:\\tools\\resources\\storage";
+	String upDir = ApplicationConfig.getAppInfo().getUpDir();
     //업로드 처리 
  
     String filename = Utility.saveFileSpring30(dto.getFilenameMF(), upDir); 
@@ -230,7 +238,13 @@ public ModelAndView reply(ModelAndView mview,int num){
 @RequestMapping(value="/board/reply.do",method=RequestMethod.POST) 
 public String reply(BoardDTO dto,HttpServletRequest request,String oldfile, HttpSession session){ 
 	
-    String upDir =request.getRealPath("/resources/storage"); 
+    //String upDir =request.getRealPath("/resources/storage");
+	//upDir =D:\tools\apache-tomcat-8.5.24\wtpwebapps\spring_board\resources\storage
+	//톰켓 sever.xml에 환경설정
+	//<Context docBase="D:\tools\resources\storage" path="/resources/storage" reloadable="true"/>
+	//String upDir ="/resources/storage";
+	//String upDir = "D:\\tools\\resources\\storage";
+	String upDir = ApplicationConfig.getAppInfo().getUpDir();
     //업로드 처리 
  
     String filename = Utility.saveFileSpring30(dto.getFilenameMF(), upDir); 
@@ -261,7 +275,14 @@ public String delete(int num, HttpServletRequest request){
 @RequestMapping(value="/board/delete.do",method=RequestMethod.POST) 
 public String delete(int num,String passwd,String oldfile,HttpServletRequest request){ 
 	
-    String upDir =request.getRealPath("/resources/storage"); 
+    //String upDir =request.getRealPath("/resources/storage");
+	//upDir =D:\tools\apache-tomcat-8.5.24\wtpwebapps\spring_board\resources\storage
+  //톰켓 sever.xml에 환경설정
+  	//<Context docBase="D:\tools\resources\storage" path="/resources/storage" reloadable="true"/>
+  	//String upDir ="/resources/storage";
+  	//String upDir = "D:\\tools\\resources\\storage";
+  	String upDir = ApplicationConfig.getAppInfo().getUpDir();
+  	
     boolean flag = boardMgr.passwdCheck(num,passwd); 
  
     if(flag){ 

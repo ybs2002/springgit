@@ -17,7 +17,7 @@ public class ApplicationInfo implements EnvironmentAware, InitializingBean, Disp
 	public void setUpDir(String upDir) {
 		this.upDir = upDir;
 	}
-
+	
 	@Override
 	public void setEnvironment(Environment env) {
 		System.out.println("setEnvironment()");

@@ -58,7 +58,10 @@ public class FileDownload extends javax.servlet.http.HttpServlet {
     ServletContext ctx = config.getServletContext();
  
     // 저장 폴더를 절대 경로로 변환
-    String dir = ctx.getRealPath(request.getParameter("dir"));
+    //String dir = ctx.getRealPath(request.getParameter("dir"));
+    //저장폴더 절대경로로 바꿈 2018.2.7
+    //String dir = "D:\\tools\\resources\\storage";
+    String dir = ApplicationConfig.getAppInfo().getUpDir();
  
     // 파일명 받기
     String filename = request.getParameter("filename");
@@ -67,6 +70,7 @@ public class FileDownload extends javax.servlet.http.HttpServlet {
     File file = new File(dir + "/" + filename);
     String fileStr = dir + "/" + filename;
     String contentType = getType(fileStr);
+    System.out.println("filestr : " + fileStr);
     System.out.println("다운로드 타입: " + contentType);
  
     String disposition = getDisposition(filename, getBrowser(request));

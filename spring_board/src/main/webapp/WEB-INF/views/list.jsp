@@ -57,7 +57,7 @@ alert("파일url" + url);
  		</select>
  		<script type="text/javascript">
  			document.frm.col.value='${col}'
- 			//if(document.frm.col.value == '') document.frm.col.value= 'subject';
+ 			if(document.frm.col.value == '') document.frm.col.value= 'subject';
  		</script>
  		<input type="text" name="word" value="${word}">
  		<input type="submit" value="검색"/>
