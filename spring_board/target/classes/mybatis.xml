@@ -13,13 +13,23 @@
 	<!-- <context:property-placeholder location="classpath:app.properties" /> -->
 
 	<!-- Data Source -->
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
-		<property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl" />
-		<property name="username" value="scott" />
-		<property name="password" value="tiger" />
-
-	</bean>
+	<!-- <bean id="dataSourceOrigin" class="org.springframework.jdbc.datasource.DriverManagerDataSource" > -->
+	<bean id="dataSourceOrigin" class="org.apache.commons.dbcp.BasicDataSource" >
+        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+        <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl"/>
+        <property name="username" value="scott"/>
+        <property name="password" value="tiger"/>
+    </bean>
+    
+    <bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+        <constructor-arg ref="dataSourceOrigin" />
+        <property name="logFormatter">
+            <bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+                <property name="loggingType" value="MULTI_LINE" />
+                <property name="sqlPrefix" value="SQL         :  "/>
+            </bean>
+        </property>
+    </bean> -->
 	
 <!-- <bean id="applicationContext" class="org.springframework.context.ApplicationContext" />  -->
 <!-- 	 	<bean  class="spring.utility.board.MyBatisTransactionManager"/> -->

@@ -24,7 +24,7 @@
   <!-- 01 주석처리 -->  
   <!--   	<context:property-placeholder location="classpath:application.properties" /> -->
     	
-	 <!-- <bean id="dataSourceOrigin" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+	 <!-- <bean id="dataSourceOrigin" class="org.apache.commons.dbcp.BasicDataSource" >
         <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
         <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl"/>
         <property name="username" value="scott"/>

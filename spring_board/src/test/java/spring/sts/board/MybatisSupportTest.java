@@ -1,6 +1,9 @@
 package spring.sts.board;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,15 +29,33 @@ public class MybatisSupportTest extends MyBatisSupport{
 
 		MyBatisTransactionManager transaction = getTransactionManager();
 		if(transaction == null)System.out.println("transaction is null");
+		System.out.println("aaaaa11111");
+
 		try {
 			
 			transaction.start();
+			System.out.println("aaaaa2222222");
 
-//			List results = sqlSession.selectList("test.select");
-//			System.out.println("selected = " + results);
-//			int cnt = sqlSession.update("test.insert", results.get(0));
-//			System.out.println("inserted = " + cnt);
-			System.out.println("aaaaa");
+			List  results = sqlSession.selectList("test.select");
+			System.out.println("selected = " + results);
+			
+			System.out.println("results.get(0) : " + results.get(0));
+			
+			
+			int cnt = 7;
+			Map map = new HashMap(); 
+		    //map.put("num",results.get(0));
+			map.put("num",String.valueOf(10)); 
+		    map.put("cnt",String.valueOf(8)); 
+			int rcnt = sqlSession.insert("test.insert", map);
+			System.out.println("inserted111 = " + rcnt);
+			map.clear();
+			
+			System.out.println("inserted2222 start");
+			map.put("num",String.valueOf(11)); 
+		    map.put("cnt",String.valueOf(3)); 
+		    rcnt = sqlSession.insert("test.insert", map);
+			System.out.println("inserted2222 = " + rcnt);
 
 			transaction.commit();
 

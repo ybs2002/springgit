@@ -6,9 +6,10 @@
 <mapper namespace="test">
 
 	<select id="select" resultType="hashmap" parameterType="map">
-		SELECT num, regdate from
+		<!-- SELECT num, regdate from
 		MYBATIS_TEST
-		WHERE num = (SELECT MAX(num) FROM MYBATIS_TEST)
+		WHERE num = (SELECT MAX(num) FROM MYBATIS_TEST) -->
+		SELECT MAX(num) num FROM MYBATIS_TEST
 	</select>
 
 	<insert id="insert" parameterType="map">
